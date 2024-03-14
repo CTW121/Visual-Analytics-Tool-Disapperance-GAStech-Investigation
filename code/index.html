@@ -1,0 +1,182 @@
+<html>
+    <head>
+        <style>
+            /* HTML styles */
+            html{ width: 100%; }
+            body{ 
+            width: 100%; 
+            margin: 0; padding: 0; 
+            display: flex; 
+            font-family: sans-serif; font-size: 75%; }
+            .controls {
+            flex-basis: 200px;
+            padding: 0 5px;
+            }
+            .controls .tSNE {
+            background-color:#B0E0E6;
+            border-radius: 3px;
+            padding: 5px;
+            margin: 5px 0;
+            }
+            .slidecontainer {
+            width: 100%; /* Width of the outside container */
+            }
+
+            .slider {
+            /* -webkit-appearance: none; */
+            width: 100%;
+            height: 25px;
+            background: #d3d3d3;
+            outline: none;
+            opacity: 1.0;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+            }
+        
+            /* SVG styles */
+            svg {
+                flex-basis: 100%;
+                min-width: 200px;
+            }
+            .links line {
+                stroke: #aaa;
+            }
+            .nodes circle {
+                pointer-events: all;
+            }
+
+            .selection {
+                fill: #ADD8E6;
+                stroke: #ADD8E6;
+                fill-opacity: 0.3;
+                stroke-opacity: 0.7;
+                stroke-width: 2;
+                stroke-dasharray: 5, 5;
+            }
+
+            div#container_email {
+                /*background-color: black;*/
+                opacity: 1.0;
+                height: 2500px;
+                width: 400px;
+                /* border:2px solid #000; */
+                overflow: scroll;
+            }
+
+            div#container_sender {
+                /*background-color: black;*/
+                opacity: 1.0;
+                height: 1500px;
+                width: 900px;
+                /* border:2px solid #000; */
+                overflow: scroll;
+            }
+
+            div#container_date {
+                /*background-color: black;*/
+                opacity: 1.0;
+                height: 2900px;
+                width: 200px;
+                /* border:2px solid #000; */
+                overflow: scroll;
+            }
+        
+        </style>
+    </head>
+    
+    <body>
+        <!-- DOM for tSNE controls (preplexity, steps and epsilon) -->
+        <div class="controls" style="position:absolute; top:10px; left: 10px; width:290px;
+                    height:930px; border:2px solid black; border-radius: 10px;">
+            <div class="tSNE" style="border-radius: 10px;">
+                <p> <b>Controls for t-SNE</b> </p>
+                    <label>
+                        perplexity
+                        <output id="tsne_PerplexitySliderOutput">30</output>
+                        <div class="slidecontainer">
+                            <!-- <input type="range" min="2" max="100" value="30" step="1" oninput="d3.select('#tsne_PerplexitySliderOutput').text(value); tSNEProperties.perplexity=value; updateAll();"> -->
+                            <input  autocomplete="off" type="range" min="5" max="1000" value="30" step="5" oninput="d3.select('#tsne_PerplexitySliderOutput').text(value);" class="slider">
+                        </div>
+                    </label>
+                    
+                    <label>
+                        step
+                        <output id="tsne_StepSliderOutput">500</output>
+                        <div class="slidecontainer">
+                            <!-- <input type="range" min="100" max="10000" value="5000" step="500" oninput="d3.select('#tsne_StepSliderOutput').text(value); tSNEProperties.step=value; updateAll();"> -->
+                            <input autocomplete="off" type="range" min="50" max="10000" value="500" step="50" oninput="d3.select('#tsne_StepSliderOutput').text(value);" class="slider">
+                        </div>
+                    </label>
+                    <label>
+                        epsilon
+                        <output id="tsne_EpsilonSliderOutput">5</output>
+                        <div class="slidecontainer">
+                            <!-- <input type="range" min="1" max="20" value="5" step="1" oninput="d3.select('#tsne_EpsilonSliderOutput').text(value); tSNEProperties.epsilon=value; updateAll();"> -->
+                            <input autocomplete="off" type="range" min="1" max="20" value="5" step="1" oninput="d3.select('#tsne_EpsilonSliderOutput').text(value);" class="slider">
+                        </div>
+                    </label>
+            </div>
+
+            <!-- button for plotting the tSNE plot -->
+            <div id="option">
+                <input name="plotButton" 
+                       type="button" 
+                       value="Plot tSNE" 
+                       onclick="plotData()" />
+            </div>
+        
+        </div>
+
+        <!-- DOM for the tSNE legend (list of date) -->
+        <div id="DimensionalityReductionLegend" style="position:absolute; top:250px; left: 15px; width:290px;
+                    height:290px; background-color:#B0E0E6; border-radius: 10px;"> <!-- background-color:#B0E0E6; -->
+            <p> <b>Date</b> </p>
+            <svg width="190px" height="30000px"></svg>
+        </div>
+        <!-- top:15px; left: 235px; border:3px solid black; border-radius: 10px; -->
+
+        <!-- DOM for displaying the list of senders' name -->
+        <div id="senders" style="position:absolute; top:550px; left: 15px; width:290px;
+                    height:385px; background-color:#B0E0E6; border-radius: 10px;"> <!-- background-color:#B0E0E6; -->
+            <p> <b>Senders</b> </p>
+            <svg width="590px" height="30000px"></svg>
+        </div>
+
+        <!-- DOM for displaying the tSNE plot -->
+        <div id="DimensionalityReduction" style="position:absolute; top:10px; left: 320px; width:520px;
+                    height:650px; border:2px solid black; border-radius: 10px;">
+            <svg width="520px" height="650px">
+
+            </svg>
+        </div>
+
+        <!-- DOM for displaying the senders' email -->
+        <div id="EmailList" style="position:absolute; top:670px; left: 320px; width:520px;
+                    height:270px; border:2px solid black;"> <!-- border-radius: 10px; -->
+            <p> <b>Email subjects</b> </p>
+            <svg width="1500px" height="30000px"></svg>
+        </div>
+
+        <!-- DOM the displaying the name of senders and receivers (the ordering is aligned with the parallel coordinates)) -->
+        <div id="SendersName" style="position:absolute; top:10px; left: 850px; width:150px;
+            height:930px; border:2px solid black; border-radius: 10px;">
+            <svg width="150px" height="930px">
+
+            </svg>
+        </div>
+
+        <!-- DOM for displaying the dynamic network graph by using the parallel coordinates -->
+        <div id="network" style="position:absolute; top:10px; left: 1010px; width:900px;
+                    height:930px; border:2px solid black; border-radius: 10px;">
+            <svg width="900px" height="930px">
+
+            </svg>
+        </div>
+
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script src="tsne.js"></script>
+        <script src="code.js"></script>
+        <script src="https://d3js.org/d3-scale-chromatic.v4.min.js"></script>
+    </body>
+
+</html>
